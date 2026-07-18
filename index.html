@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Cradle — an independent design & development studio building websites, apps and brands." />
+    <title>Cradle — Design & Development</title>
+
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              beige: "#e9ebdc",
+              "beige-alt": "#dbd7d0",
+              sand: "#d4d1bb",
+              "sand-dark": "#c8caba",
+              ink: "#222222",
+              "ink-soft": "#484848",
+              grey: "#4c4b48",
+              stroke: "#bbbcb1",
+              accent: "#f00000",
+            },
+            fontFamily: {
+              sans: ['"ABC Favorit"', "system-ui", "sans-serif"],
+              mono: ['"ABC Favorit Mono"', "ui-monospace", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
