@@ -2,10 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { CornerMarks } from "./Marks.jsx";
 
 /**
- * The matted editorial preview window. Shows the active project's still,
- * and when that project is "in motion" swaps to its muted looping clip via a
- * hard clip-path wipe. Exactly one video is ever mounted here, so playback is
- * naturally capped to one at a time.
+ * The matted editorial preview window. Holds the active project's poster and
+ * swaps to its muted looping screen recording via a hard clip-path wipe.
+ * Exactly one video is ever mounted here, so playback is naturally capped to
+ * one at a time.
+ *
+ * The frame is a browser viewport, so it keeps the recordings' native 1840×1088
+ * ratio — no cropping of the sites we're showing off. When the project is live,
+ * the whole frame is the outbound link to it.
  */
 export default function PreviewFrame({ project, className = "" }) {
   const figRef = useRef(null);
@@ -15,14 +19,27 @@ export default function PreviewFrame({ project, className = "" }) {
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Each clip is a real 1–2 MB file, so don't mount one for a row the pointer is
+  // only passing over — wait for the selection to settle. The poster covers the gap.
+  const [settledId, setSettledId] = useState(project?.id);
+  useEffect(() => {
+    const t = setTimeout(() => setSettledId(project?.id), 180);
+    return () => clearTimeout(t);
+  }, [project?.id]);
+  const showVideo = settledId === project?.id;
+
   useEffect(() => {
     setPlaying(false);
+  }, [project?.id]);
+
+  // runs once the (freshly keyed) video for the settled project is mounted
+  useEffect(() => {
     const v = videoRef.current;
-    if (v && project?.video && !reduce) {
+    if (v && showVideo && project?.video && !reduce) {
       v.currentTime = 0;
       v.play().catch(() => {});
     }
-  }, [project?.id, project?.video, reduce]);
+  }, [project?.id, project?.video, showVideo, reduce]);
 
   // pause decode while the frame is off-screen (smoother scrolling); resume in view
   useEffect(() => {
@@ -43,51 +60,79 @@ export default function PreviewFrame({ project, className = "" }) {
 
   if (!project) return null;
 
-  return (
-    <figure ref={figRef} className={`relative ${className}`} data-cursor={project.video ? "PLAY" : "STILL"}>
-      {/* mat + frame */}
-      <div className="relative bg-beige-alt p-2.5 md:p-3 matte-shadow">
-        <div className="relative aspect-[3/4] overflow-hidden bg-sand-dark ring-1 ring-ink/80">
-          {/* poster still */}
-          <img
-            src={project.image}
-            alt={project.title}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-              playing ? "opacity-0" : "opacity-100"
+  const live = Boolean(project.href);
+
+  const plate = (
+    <div className="relative bg-beige-alt p-2.5 md:p-3 matte-shadow">
+      <div className="relative aspect-[1280/684] overflow-hidden bg-sand-dark ring-1 ring-ink/80">
+        {/* poster still */}
+        <img
+          src={project.image}
+          alt={project.title}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            playing ? "opacity-0" : "opacity-100"
+          }`}
+        />
+        {/* motion */}
+        {project.video && showVideo && !reduce && (
+          <video
+            key={project.id}
+            ref={videoRef}
+            src={project.video}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={project.image}
+            onPlaying={() => setPlaying(true)}
+            className={`wipe-in absolute inset-0 h-full w-full object-cover ${
+              playing ? "opacity-100" : "opacity-0"
             }`}
           />
-          {/* motion */}
-          {project.video && !reduce && (
-            <video
-              key={project.id}
-              ref={videoRef}
-              src={project.video}
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              poster={project.image}
-              onPlaying={() => setPlaying(true)}
-              className={`wipe-in absolute inset-0 h-full w-full object-cover ${
-                playing ? "opacity-100" : "opacity-0"
-              }`}
-            />
-          )}
+        )}
 
-          {/* live badge */}
-          {project.video && (
-            <span className="absolute left-2 top-2 z-10 flex items-center gap-1.5 bg-ink/80 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-beige">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent blink" /> Live
-            </span>
-          )}
-        </div>
-        <CornerMarks size={9} inset={3} className="text-ink/50" />
+        {/* live badge */}
+        {live && (
+          <span className="absolute left-2 top-2 z-10 flex items-center gap-1.5 bg-ink/80 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-beige">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent blink" /> Live
+          </span>
+        )}
+
+        {/* visit affordance — only on the outbound frame */}
+        {live && (
+          <span className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 bg-beige/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-ink opacity-0 transition-opacity duration-300 group-hover/frame:opacity-100">
+            Visit site <span className="text-accent">↗</span>
+          </span>
+        )}
       </div>
+      <CornerMarks size={9} inset={3} className="text-ink/50" />
+    </div>
+  );
+
+  return (
+    <figure
+      ref={figRef}
+      className={`group/frame relative ${className}`}
+      data-cursor={live ? "VISIT" : "PLAY"}
+    >
+      {live ? (
+        <a
+          href={project.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${project.title} — open the live site in a new tab`}
+          className="block"
+        >
+          {plate}
+        </a>
+      ) : (
+        plate
+      )}
 
       {/* caption strip */}
       <figcaption className="mt-3 flex items-center justify-between border-t border-stroke pt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-grey">
         <span>
-          {project.video ? "Now previewing" : "Still"} — {project.n}
+          {live ? "Now previewing" : "Preview"} — {project.n ?? "--"}
         </span>
         <span className="truncate pl-3 text-ink">{project.title}</span>
       </figcaption>

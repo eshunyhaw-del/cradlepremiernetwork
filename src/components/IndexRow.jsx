@@ -2,7 +2,11 @@ import { Link } from "react-router-dom";
 
 /**
  * One line of the living index. Hover/focus makes it the active row (drives
- * the shared preview frame). Video rows read "VIEW"; stills read "STILL".
+ * the shared preview frame).
+ *
+ * A row that carries `project.href` is a live site: it opens in a new tab and
+ * its last column reads LIVE ↗. Rows without one (the hero's sector rows) stay
+ * internal links and fall back to `to`.
  * `size` tunes the title scale for hero vs archive contexts.
  */
 export default function IndexRow({
@@ -18,16 +22,21 @@ export default function IndexRow({
       ? "text-[clamp(1.5rem,3.4vw,3.1rem)]"
       : "text-[clamp(1.75rem,5vw,4.25rem)]";
 
-  return (
-    <Link
-      to={to}
-      data-cursor={project.video ? "VIEW" : "STILL"}
-      onMouseEnter={onActivate}
-      onFocus={onActivate}
-      className={`group grid items-center gap-x-4 border-b border-stroke/70 transition-colors duration-300
-        grid-cols-[2.75rem_1fr_auto] md:grid-cols-[4.5rem_1fr_10rem_8rem_5rem]
-        ${dim ? "opacity-45" : "opacity-100"} ${active ? "bg-ink/[0.02]" : ""}`}
-    >
+  const live = Boolean(project.href);
+
+  const className = `group grid items-center gap-x-4 border-b border-stroke/70 transition-colors duration-300
+        grid-cols-[2.75rem_1fr_auto] md:grid-cols-[4.5rem_1fr_10rem_8rem_5.5rem]
+        ${dim ? "opacity-45" : "opacity-100"} ${active ? "bg-ink/[0.02]" : ""}`;
+
+  const shared = {
+    className,
+    onMouseEnter: onActivate,
+    onFocus: onActivate,
+    "data-cursor": live ? "VISIT" : "VIEW",
+  };
+
+  const body = (
+    <>
       {/* № */}
       <span className="tabular self-start py-3 font-light text-grey text-[clamp(0.9rem,1.4vw,1.1rem)] md:pt-5">
         {project.n}
@@ -60,18 +69,38 @@ export default function IndexRow({
         {project.client}
       </span>
 
-      {/* year + marker */}
-      <span className="flex items-center justify-end gap-3 self-center py-3 pr-1 font-mono text-[10px] uppercase tracking-[0.12em] text-grey">
-        <span className="tabular">{project.year}</span>
+      {/* live marker (or an explicit `tag`, used by the hero's sector rows) */}
+      <span className="flex items-center justify-end gap-2 self-center py-3 pr-1 font-mono text-[10px] uppercase tracking-[0.12em] text-grey">
+        <span className={live ? "text-ink" : ""}>{project.tag ?? (live ? "Live" : "Soon")}</span>
         <span
           className={`text-accent transition-transform duration-300 ${
             active ? "translate-x-0 opacity-100" : "translate-x-1 opacity-0 group-hover:opacity-60"
           }`}
           aria-hidden
         >
-          →
+          {live ? "↗" : "→"}
         </span>
       </span>
+    </>
+  );
+
+  if (live) {
+    return (
+      <a
+        {...shared}
+        href={project.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${project.title} — open the live site in a new tab`}
+      >
+        {body}
+      </a>
+    );
+  }
+
+  return (
+    <Link {...shared} to={to}>
+      {body}
     </Link>
   );
 }

@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link, useLocation } from "react-router-dom";
 import Plate from "./components/Plate.jsx";
 import Cursor from "./components/Cursor.jsx";
 import useMagnetic from "./lib/useMagnetic.js";
-import { inMotionCount } from "./data/projects";
+import { liveCount } from "./data/projects";
 
 const nav = [
   { to: "/", label: "Index", end: true },
@@ -57,7 +57,7 @@ function Ticker({ faded }) {
       GMT {t} <span className="text-stroke">·</span> Accra{" "}
       <span className="text-stroke">·</span>{" "}
       <span className="text-ink">
-        {String(inMotionCount).padStart(2, "0")} in motion
+        {String(liveCount).padStart(2, "0")} live
       </span>
     </span>
   );

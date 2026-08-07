@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import IndexRow from "../components/IndexRow.jsx";
 import PreviewFrame from "../components/PreviewFrame.jsx";
-import { catalog, INDUSTRIES, byIndustry, inMotionCount } from "../data/projects";
+import { catalog, INDUSTRIES, byIndustry, liveCount } from "../data/projects";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,7 +76,7 @@ export default function Work() {
       {/* head */}
       <div className="mb-8 border-b border-ink pb-6">
         <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-grey">
-          §01 — By industry · {activeLabel} · {list.length} {list.length === 1 ? "project" : "projects"}
+          §01 — By industry · {activeLabel} · {list.length} {list.length === 1 ? "project" : "projects"} · Click a line to open the live site
         </p>
         <h1 className="condense font-medium leading-[0.88] tracking-[-0.02em] text-[clamp(3rem,11vw,9rem)]">
           Work
@@ -105,15 +105,15 @@ export default function Work() {
       </div>
 
       {/* index + sticky frame */}
-      <div className="grid gap-10 lg:grid-cols-[1fr_minmax(280px,30%)] lg:gap-12">
+      <div className="grid gap-10 lg:grid-cols-[1fr_minmax(320px,36%)] lg:gap-12">
         <div key={active} onMouseLeave={() => setHoverId(null)}>
           {/* column header */}
-          <div className="grid grid-cols-[2.75rem_1fr_auto] gap-x-4 border-b border-ink pb-2 md:grid-cols-[4.5rem_1fr_10rem_8rem_5rem]">
+          <div className="grid grid-cols-[2.75rem_1fr_auto] gap-x-4 border-b border-ink pb-2 md:grid-cols-[4.5rem_1fr_10rem_8rem_5.5rem]">
             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-grey">№</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-grey">Project</span>
-            <span className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Discipline</span>
+            <span className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Build</span>
             <span className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Client</span>
-            <span className="hidden justify-self-end font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Year</span>
+            <span className="hidden justify-self-end font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Site</span>
           </div>
           {list.map((p) => (
             <div key={p.id} className="work-row" ref={(el) => (rowRefs.current[p.id] = el)}>
@@ -131,8 +131,8 @@ export default function Work() {
           <div className="sticky top-20">
             <PreviewFrame project={activeProject} />
             <p className="mt-4 max-w-xs font-mono text-[10px] uppercase leading-relaxed tracking-[0.1em] text-grey">
-              Hover a line — or scroll — to preview it here. {String(inMotionCount).padStart(2, "0")} of {catalog.length}
-              &nbsp;entries are live in motion; the rest show stills.
+              Hover a line — or scroll — to preview it here. {String(liveCount).padStart(2, "0")} of {catalog.length}
+              &nbsp;builds are live; click the frame or the line to open the real site.
             </p>
           </div>
         </aside>

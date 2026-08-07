@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Raw working assets — ~1.6GB of source PNGs, trial font families and screen
+# recordings. The web-ready derivatives live in public/ and are committed.
+/Assets/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -6,22 +6,14 @@ import IndexRow from "../components/IndexRow.jsx";
 import PreviewFrame from "../components/PreviewFrame.jsx";
 import Knockout from "../components/Knockout.jsx";
 import useMagnetic from "../lib/useMagnetic.js";
-import { heroRows, byCategory, byIndustry, CATEGORIES, previewPool, INDUSTRIES } from "../data/projects";
-
-// For a hero industry, derive its dominant work type + earliest year from the
-// projects actually tagged to that industry, so the hero never contradicts Work.
-const CAT_ORDER = ["website", "case-study", "app"];
-function deriveHeroMeta(industryName) {
-  const projs = byIndustry(industryName);
-  if (!projs.length) return null;
-  const counts = {};
-  projs.forEach((p) => (counts[p.category] = (counts[p.category] || 0) + 1));
-  const domCat = Object.keys(counts).sort(
-    (a, b) => counts[b] - counts[a] || CAT_ORDER.indexOf(a) - CAT_ORDER.indexOf(b)
-  )[0];
-  const years = projs.map((p) => parseInt(p.year, 10)).filter(Boolean);
-  return { service: CATEGORIES[domCat], since: years.length ? String(Math.min(...years)) : null };
-}
+import {
+  heroRows,
+  byCategory,
+  CATEGORIES,
+  INDUSTRIES,
+  liveCount,
+  manifestoClip,
+} from "../data/projects";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,9 +28,9 @@ function ColHead() {
       <div className="grid grid-cols-[2.75rem_1fr_auto] gap-x-4 pb-2 md:grid-cols-[4.5rem_1fr_10rem_8rem_5rem]">
         <span className="col-head-label font-mono text-[10px] uppercase tracking-[0.12em] text-grey">№</span>
         <span className="col-head-label font-mono text-[10px] uppercase tracking-[0.12em] text-grey">Industry</span>
-        <span className="col-head-label hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Service</span>
-        <span className="col-head-label hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Focus</span>
-        <span className="col-head-label hidden justify-self-end font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Year</span>
+        <span className="col-head-label hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Build</span>
+        <span className="col-head-label hidden font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Featured</span>
+        <span className="col-head-label hidden justify-self-end font-mono text-[10px] uppercase tracking-[0.12em] text-grey md:block">Count</span>
       </div>
       <div className="col-head h-px w-full origin-left bg-ink" />
     </div>
@@ -47,16 +39,7 @@ function ColHead() {
 
 /* ── Hero — The Index ───────────────────────────────────── */
 function Hero() {
-  const rows = useMemo(
-    () =>
-      heroRows.map((p) => {
-        const meta = deriveHeroMeta(p.title);
-        return meta
-          ? { ...p, discipline: meta.service, year: meta.since ?? p.year }
-          : p;
-      }),
-    []
-  );
+  const rows = useMemo(() => heroRows, []);
   const root = useRef(null);
   const rowsWrap = useRef(null);
   const rowEls = useRef([]);
@@ -158,7 +141,7 @@ function Hero() {
         </div>
         <div>
           <p className="hero-sub max-w-sm text-[15px] leading-snug text-ink-soft">
-            Hover on desktop or tap on mobile to see our work in motion. Eight of the industries we build for are featured here — explore the full range below.
+            Real builds, recorded live. Hover on desktop or tap on mobile to watch one move — then open it and use the real thing. {liveCount} sites shipped across {INDUSTRIES.length} sectors.
           </p>
           <div className="hero-cta mt-4 flex flex-wrap gap-3">
             <a href="#index" className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink underline decoration-accent decoration-2 underline-offset-4">
@@ -174,7 +157,7 @@ function Hero() {
           <ColHead />
           {/* mobile frame */}
           <div className="my-6 lg:hidden">
-            <PreviewFrame project={active} className="mx-auto max-w-[280px]" />
+            <PreviewFrame project={active} className="mx-auto max-w-[440px]" />
           </div>
           <div ref={rowsWrap} className="relative" onMouseLeave={() => setHoverIdx(null)}>
             <div
@@ -301,8 +284,8 @@ function Manifesto() {
             that&nbsp;
             <Knockout
               word="move"
-              video={previewPool[5]}
-              poster="/work/skateboard-urban-glide.webp"
+              video={manifestoClip.video}
+              poster={manifestoClip.poster}
               bandColor="#d4d1bb"
               className="h-[0.8em] w-[2.65em]"
             />
@@ -324,11 +307,11 @@ function Legend() {
     key,
     label: CATEGORIES[key],
     def:
-      key === "website"
-        ? "From landing pages to complex digital platforms, crafted with precision, performance, and purpose."
-        : key === "case-study"
-        ? "Research, strategy, experimentation, and measurable outcomes that shape better digital products."
-        : "Native and cross-platform experiences designed to feel effortless, scalable, and built to last.",
+      key === "site"
+        ? "Brand, studio and marketing sites — from a single landing page to a full multi-market platform."
+        : key === "storefront"
+        ? "Commerce builds where the catalogue, the checkout and the story all have to carry their weight."
+        : "The Squarespace starting points we build fast on when a launch date is closer than a blank page.",
     count: byCategory(key).length,
   }));
 
